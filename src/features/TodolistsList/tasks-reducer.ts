@@ -3,7 +3,7 @@ import {TaskPriorities, TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelTyp
 import {Dispatch} from 'redux'
 import {AppRootStateType} from '../../app/store'
 import {AppActionsType, setErrorAC, setStatusAC} from "../../app/app-reducer";
-import {handleServerNetworkError} from "../../utils/error-utils";
+import {handleServerAppError, handleServerNetworkError} from "../../utils/error-utils";
 
 const initialState: TasksStateType = {}
 
@@ -72,17 +72,10 @@ export const removeTaskTC = (taskId: string, todolistId: string) => (dispatch: D
                 dispatch(action)
                 dispatch(setStatusAC('succeeded'))
             } else {
-                if (res.data.messages.length) {
-                    dispatch(setStatusAC('failed'))
-                    dispatch(setErrorAC(res.data.messages[0]))
-                } else {
-                    dispatch(setErrorAC('Some error'))
-                }
-                dispatch(setErrorAC(res.data.messages[0]))
+                handleServerAppError(dispatch,res.data)
             }
         }).catch((e) => {
-        dispatch(setStatusAC('failed'))
-        dispatch(setErrorAC(e.message))
+        handleServerNetworkError(dispatch,e)
     })
 }
 export const addTaskTC = (title: string, todolistId: string) => (dispatch: Dispatch<ActionsType>) => {
@@ -94,13 +87,7 @@ export const addTaskTC = (title: string, todolistId: string) => (dispatch: Dispa
                 const action = addTaskAC(task)
                 dispatch(action)
             } else {
-                if (res.data.messages.length) {
-                    dispatch(setStatusAC('failed'))
-                    dispatch(setErrorAC(res.data.messages[0]))
-                } else {
-                    dispatch(setErrorAC('Some error'))
-                }
-                dispatch(setErrorAC(res.data.messages[0]))
+               handleServerAppError<{item:TaskType}>(dispatch, res.data)
             }
         }).catch((e) => {
         handleServerNetworkError(dispatch, e)
